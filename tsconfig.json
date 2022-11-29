@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "sourceMap": true,
+    "allowJs": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "baseUrl": "./",
+    "types": ["@item-enonic-types/global"],
+    "paths": {
+      "/lib/xp/*": ["node_modules/@enonic-types/lib-*"]
+    },
+    "declaration": true,
+    "declarationDir": "build/types"
+  },
+  "types": [
+    "types"
+  ]
+}
