@@ -46,13 +46,15 @@ It will return an array with objects of this shape:
 
 ```typescript
 interface Translation {
-  url: string;
+  url?: string;
+  rootUrl: string;
   languageCode: string;
   current: boolean;
 }
 ```
 
-For pages that doesn't have a translation in a language, it will return the url of the top page of that language.
+For pages that doesn't have a translation in a language, it will return `undefined`. But the application developer
+can use `rootUrl` instead to link to the root page of that language.
 
 ### Example
 
@@ -67,6 +69,7 @@ const view = resolve("default.html");
 export function get(req: XP.Request): XP.Response {
   const content = getContent()!;
   const translations = getTranslations(content._id, req)
+    .filter((translation) => !translation.current)
     .map(addName)
   
   return {

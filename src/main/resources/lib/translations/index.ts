@@ -5,7 +5,8 @@ import { list as listVhosts, type VirtualHost } from "/lib/xp/vhost";
 import { Request } from "@item-enonic-types/global/controller";
 
 export interface Translation {
-  url: string;
+  url?: string;
+  rootUrl: string;
   languageCode: string;
   current: boolean;
 }
@@ -43,13 +44,14 @@ function createTranslation(
   currentProjectId: string
 ): Translation | undefined {
   const rootUrl = getVhostSourceByProject(project.id, vhosts)?.source;
-  const url = getTranslatedUrl(project.id, contentId, currentProjectId, vhosts) ?? rootUrl;
+  const url = getTranslatedUrl(project.id, contentId, currentProjectId, vhosts) ?? undefined;
 
-  return project.language && url
+  return project.language && rootUrl
     ? {
         languageCode: project.language,
         current: project.id === currentProjectId,
-        url,
+        rootUrl: rootUrl,
+        url: url,
       }
     : undefined;
 }
