@@ -2,6 +2,8 @@
 
 Enonic XP Library for getting all content translations (from different layers).
 
+[![](https://jitpack.io/v/no.item/lib-xp-translations.svg)](https://jitpack.io/#no.item/lib-xp-translations)
+
 ## Gradle
 
 To install this library you may need to add some new dependencies to your app's build.gradle file.
