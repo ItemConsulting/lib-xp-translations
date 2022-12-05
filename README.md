@@ -47,6 +47,7 @@ It will return an array with objects of this shape:
 ```typescript
 interface Translation {
   url?: string;
+  absoluteUrl?: string;
   rootUrl: string;
   languageCode: string;
   current: boolean;
@@ -62,18 +63,20 @@ can use `rootUrl` instead to link to the root page of that language.
 import { getContent } from "/lib/xp/portal";
 import { render } from "/lib/thymeleaf";
 import { localize } from "/lib/xp/i18n";
-import { getTranslations } from "/lib/translations";
+import { getTranslations, getPageContributions } from "/lib/translations";
 
 const view = resolve("default.html");
 
 export function get(req: XP.Request): XP.Response {
   const content = getContent()!;
-  const translations = getTranslations(content._id, req)
+  const translations = getTranslations(content._id, req);
+  const translation = translations
     .filter((translation) => !translation.current)
-    .map(addName)
+    .map(addName)[0]
   
   return {
-    body: render(view, { translations })
+    body: render(view, { translation }),
+    pageContributions: getPageContributions(translations)
   }
 }
 

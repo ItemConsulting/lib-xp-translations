@@ -1,11 +1,12 @@
 import { list as listProjects, type Project } from "/lib/xp/project";
 import { run } from "/lib/xp/context";
-import { pageUrl } from "/lib/xp/portal";
+import { pageUrl, type PageUrlParams } from "/lib/xp/portal";
 import { list as listVhosts, type VirtualHost } from "/lib/xp/vhost";
-import { Request } from "@item-enonic-types/global/controller";
+import type { Request } from "@item-enonic-types/global/controller";
 
 export interface Translation {
   url?: string;
+  absoluteUrl?: string;
   rootUrl: string;
   languageCode: string;
   current: boolean;
@@ -21,6 +22,15 @@ export function getTranslations(contentId: string, reqOrCurrentRepositoryId: str
     .map((project) => createTranslation(project, vhosts, contentId, currentProjectId))
     .filter<Translation>(notNullOrUndefined)
     .sort((a, b) => a.languageCode.localeCompare(b.languageCode));
+}
+
+export function getLanguageLinksForHead(translations: Array<Translation>): string[] {
+  return translations
+    .filter((translation) => translation.absoluteUrl !== undefined)
+    .map(
+      (translation) =>
+        `<link rel="alternate" hreflang="${translation.languageCode}" href="${translation.absoluteUrl}" />`
+    );
 }
 
 function getCurrentProjectId(reqOrCurrentRepositoryId: string | Request): string {
@@ -44,14 +54,14 @@ function createTranslation(
   currentProjectId: string
 ): Translation | undefined {
   const rootUrl = getVhostSourceByProject(project.id, vhosts)?.source;
-  const url = getTranslatedUrl(project.id, contentId, currentProjectId, vhosts) ?? undefined;
 
   return project.language && rootUrl
     ? {
-        languageCode: project.language,
+        languageCode: sanitizeLanguageCode(project.language),
         current: project.id === currentProjectId,
         rootUrl: rootUrl,
-        url: url,
+        url: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts) ?? undefined,
+        absoluteUrl: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts, "absolute") ?? undefined,
       }
     : undefined;
 }
@@ -64,11 +74,16 @@ function startsWith(str: string, search: string): boolean {
   return str.slice(0, search.length) === search;
 }
 
+function sanitizeLanguageCode(language: string) {
+  return language.replace("_", "-");
+}
+
 function getTranslatedUrl(
   projectId: string,
   contentId: string,
   currentProjectId: string,
-  vhosts: VirtualHost[]
+  vhosts: VirtualHost[],
+  type: PageUrlParams["type"] = undefined
 ): string | void {
   const currentVhost = getVhostSourceByProject(currentProjectId, vhosts);
   const projectVhost = getVhostSourceByProject(projectId, vhosts);
@@ -79,6 +94,7 @@ function getTranslatedUrl(
     () =>
       pageUrl({
         id: contentId,
+        type,
       })
   );
 
@@ -100,7 +116,7 @@ function urlIs404(url: string): boolean {
 
 function isInAdminSite(url: string, vhosts: VirtualHost[]): boolean {
   const adminSource = findVhost(vhosts, (vhost) => vhost.target === "/admin")?.source ?? "/admin";
-  return startsWith(url, adminSource);
+  return url.indexOf(`${adminSource}/site/`) !== -1;
 }
 
 function findVhost(vhosts: VirtualHost[], f: (vhost: VirtualHost) => unknown): VirtualHost | undefined {
