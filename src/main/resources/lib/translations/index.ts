@@ -4,6 +4,7 @@ import { pageUrl, type PageUrlParams } from "/lib/xp/portal";
 import { list as listVhosts, type VirtualHost } from "/lib/xp/vhost";
 import type { Request } from "@item-enonic-types/global/controller";
 
+type RequestParams = Request["params"];
 export interface Translation {
   url?: string;
   absoluteUrl?: string;
@@ -15,11 +16,10 @@ export interface Translation {
 export function getTranslations(contentId: string, req: Request): Array<Translation>;
 export function getTranslations(contentId: string, currentRepositoryId: string): Array<Translation>;
 export function getTranslations(contentId: string, reqOrCurrentRepositoryId: string | Request): Array<Translation> {
-  const currentProjectId = getCurrentProjectId(reqOrCurrentRepositoryId);
   const vhosts = listVhosts().vhosts;
 
   return listProjects()
-    .map((project) => createTranslation(project, vhosts, contentId, currentProjectId))
+    .map((project) => createTranslation(project, vhosts, contentId, reqOrCurrentRepositoryId))
     .filter<Translation>(notNullOrUndefined)
     .sort((a, b) => a.languageCode.localeCompare(b.languageCode));
 }
@@ -51,17 +51,19 @@ function createTranslation(
   project: Project,
   vhosts: VirtualHost[],
   contentId: string,
-  currentProjectId: string
+  reqOrCurrentRepositoryId: string | Request
 ): Translation | undefined {
   const rootUrl = getVhostSourceByProject(project.id, vhosts)?.source;
+  const currentProjectId = getCurrentProjectId(reqOrCurrentRepositoryId);
+  const params = typeof reqOrCurrentRepositoryId !== "string" ? reqOrCurrentRepositoryId.params : {};
 
   return project.language && rootUrl
     ? {
         languageCode: sanitizeLanguageCode(project.language),
         current: project.id === currentProjectId,
         rootUrl: rootUrl,
-        url: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts) ?? undefined,
-        absoluteUrl: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts, "absolute") ?? undefined,
+        url: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts, params) ?? undefined,
+        absoluteUrl: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts, params, "absolute") ?? undefined,
       }
     : undefined;
 }
@@ -83,6 +85,7 @@ function getTranslatedUrl(
   contentId: string,
   currentProjectId: string,
   vhosts: VirtualHost[],
+  params: RequestParams,
   type: PageUrlParams["type"] = undefined
 ): string | void {
   const currentVhost = getVhostSourceByProject(currentProjectId, vhosts);
@@ -95,6 +98,7 @@ function getTranslatedUrl(
       pageUrl({
         id: contentId,
         type,
+        params,
       })
   );
 
