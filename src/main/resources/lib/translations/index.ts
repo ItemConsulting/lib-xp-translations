@@ -17,11 +17,19 @@ export function getTranslations(contentId: string, req: Request): Array<Translat
 export function getTranslations(contentId: string, currentRepositoryId: string): Array<Translation>;
 export function getTranslations(contentId: string, reqOrCurrentRepositoryId: string | Request): Array<Translation> {
   const vhosts = listVhosts().vhosts;
+  const projects = listProjects();
+  const currentProjectId = getCurrentProjectId(reqOrCurrentRepositoryId);
+  const currentProject = projects.filter((project) => project.id === currentProjectId)[0];
 
-  return listProjects()
+  return projects
+    .filter((project) => isLayerInCurrentProject(project, currentProject))
     .map((project) => createTranslation(project, vhosts, contentId, reqOrCurrentRepositoryId))
     .filter<Translation>(notNullOrUndefined)
     .sort((a, b) => a.languageCode.localeCompare(b.languageCode));
+}
+
+function isLayerInCurrentProject(project: Project, currentProject: Project): boolean {
+  return project.id === currentProject.parent || project.parent === currentProject.id;
 }
 
 export function getLanguageLinksForHead(translations: Array<Translation>): string[] {
@@ -57,11 +65,11 @@ function createTranslation(
   const currentProjectId = getCurrentProjectId(reqOrCurrentRepositoryId);
   const params = typeof reqOrCurrentRepositoryId !== "string" ? reqOrCurrentRepositoryId.params : {};
 
-  return project.language && rootUrl
+  return project.language
     ? {
         languageCode: sanitizeLanguageCode(project.language),
         current: project.id === currentProjectId,
-        rootUrl: rootUrl,
+        rootUrl: rootUrl ?? "/",
         url: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts, params) ?? undefined,
         absoluteUrl: getTranslatedUrl(project.id, contentId, currentProjectId, vhosts, params, "absolute") ?? undefined,
       }

@@ -21,10 +21,10 @@
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/preset-env": "^7.20.2",
     "@babel/register": "^7.18.9",
-    "@enonic-types/lib-context": "^7.11.0",
-    "@enonic-types/lib-portal": "^7.11.0",
-    "@enonic-types/lib-project": "^7.11.0",
-    "@enonic-types/lib-vhost": "^7.11.0",
+    "@enonic-types/lib-context": "^7.12.0",
+    "@enonic-types/lib-portal": "^7.12.0",
+    "@enonic-types/lib-project": "^7.12.0",
+    "@enonic-types/lib-vhost": "^7.12.0",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
     "babel-loader": "^9.1.0",
@@ -44,7 +44,7 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "@item-enonic-types/global": "^7.11.0"
+    "@item-enonic-types/global": "^7.12.0"
   },
   "browserslist": [
     "extends browserslist-config-enonic"
