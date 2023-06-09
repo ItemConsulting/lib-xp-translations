@@ -17,7 +17,12 @@ export function getTranslations(contentId: string, req: Request): Array<Translat
 export function getTranslations(contentId: string, currentRepositoryId: string): Array<Translation>;
 export function getTranslations(contentId: string, reqOrCurrentRepositoryId: string | Request): Array<Translation> {
   const vhosts = listVhosts().vhosts;
-  const projects = listProjects();
+  const projects = run(
+    {
+      principals: ["role:system.admin"],
+    },
+    () => listProjects()
+  );
   const currentProjectId = getCurrentProjectId(reqOrCurrentRepositoryId);
   const currentProject = projects.filter((project) => project.id === currentProjectId)[0];
 

@@ -18,7 +18,7 @@ dependencies {
   include "com.enonic.xp:lib-portal:${xpVersion}"
   include "com.enonic.xp:lib-project:${xpVersion}"
   include "com.enonic.xp:lib-vhost:${xpVersion}"
-  include 'no.item:lib-xp-translations:1.0.0'
+  include 'no.item:lib-xp-translations:1.5.0'
 }
 ```
 
