@@ -2,12 +2,11 @@ import { list as listProjects, type Project } from "/lib/xp/project";
 import { run } from "/lib/xp/context";
 import { pageUrl, type PageUrlParams } from "/lib/xp/portal";
 import { list as listVhosts, type VirtualHost } from "/lib/xp/vhost";
-import type { Request } from "@item-enonic-types/global/controller";
+import type { Request } from "@enonic-types/core";
 
-type RequestParams = Request["params"];
 export interface Translation {
   url?: string;
-  absoluteUrl?: string;
+  absoluteUrl?: string | undefined;
   rootUrl: string;
   languageCode: string;
   current: boolean;
@@ -21,7 +20,7 @@ export function getTranslations(contentId: string, reqOrCurrentRepositoryId: str
     {
       principals: ["role:system.admin"],
     },
-    () => listProjects()
+    () => listProjects(),
   );
   const currentProjectId = getCurrentProjectId(reqOrCurrentRepositoryId);
   const currentProject = projects.filter((project) => project.id === currentProjectId)[0];
@@ -42,14 +41,14 @@ export function getLanguageLinksForHead(translations: Array<Translation>): strin
     .filter((translation) => translation.absoluteUrl !== undefined)
     .map(
       (translation) =>
-        `<link rel="alternate" hreflang="${translation.languageCode}" href="${translation.absoluteUrl}" />`
+        `<link rel="alternate" hreflang="${translation.languageCode}" href="${translation.absoluteUrl}" />`,
     );
 }
 
-function getCurrentProjectId(reqOrCurrentRepositoryId: string | Request): string {
+function getCurrentProjectId(reqOrCurrentRepositoryId: string | Request): string | undefined {
   const currentRepositoryId =
     typeof reqOrCurrentRepositoryId === "string" ? reqOrCurrentRepositoryId : reqOrCurrentRepositoryId.repositoryId;
-  return getProjectIdByRepositoryId(currentRepositoryId);
+  return currentRepositoryId ? getProjectIdByRepositoryId(currentRepositoryId) : undefined;
 }
 
 function getProjectIdByRepositoryId(repositoryId: string): string {
@@ -64,13 +63,13 @@ function createTranslation(
   project: Project,
   vhosts: VirtualHost[],
   contentId: string,
-  reqOrCurrentRepositoryId: string | Request
+  reqOrCurrentRepositoryId: string | Request,
 ): Translation | undefined {
   const rootUrl = getVhostSourceByProject(project.id, vhosts)?.source;
   const currentProjectId = getCurrentProjectId(reqOrCurrentRepositoryId);
   const params = typeof reqOrCurrentRepositoryId !== "string" ? reqOrCurrentRepositoryId.params : {};
 
-  return project.language
+  return project.language && currentProjectId
     ? {
         languageCode: sanitizeLanguageCode(project.language),
         current: project.id === currentProjectId,
@@ -89,7 +88,7 @@ function startsWith(str: string, search: string): boolean {
   return str.slice(0, search.length) === search;
 }
 
-function sanitizeLanguageCode(language: string) {
+function sanitizeLanguageCode(language: string): string {
   return language.replace("_", "-");
 }
 
@@ -98,9 +97,9 @@ function getTranslatedUrl(
   contentId: string,
   currentProjectId: string,
   vhosts: VirtualHost[],
-  params: RequestParams,
-  type: PageUrlParams["type"] = undefined
-): string | void {
+  params: Request["params"],
+  type: PageUrlParams["type"] = undefined,
+): string | undefined {
   const currentVhost = getVhostSourceByProject(currentProjectId, vhosts);
   const projectVhost = getVhostSourceByProject(projectId, vhosts);
   const urlOnWrongVhost = run(
@@ -112,7 +111,7 @@ function getTranslatedUrl(
         id: contentId,
         type,
         params,
-      })
+      }),
   );
 
   if (urlIs404(urlOnWrongVhost)) {
