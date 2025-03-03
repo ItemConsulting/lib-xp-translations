@@ -3,54 +3,39 @@
   "version": "1.5.0",
   "description": "Type definitions for lib-translations",
   "license": "MIT",
+  "types": "dist/index.d.ts",
   "files": [
-    "*.d.ts",
-    "tsconfig.json"
+    "dist",
+    "tsconfig.json",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build:server": "webpack --config webpack.server.config.js --color",
-    "build": "run-p -c build:*",
-    "dist:server": "cross-env NODE_ENV=production webpack --config webpack.server.config.js --color",
-    "dist": "run-p -c dist:*",
-    "lint": "eslint --fix 'src/**/*.ts'",
-    "prepublishOnly": "tsc --project src/main/resources/tsconfig.server.json --declarationDir build/types --emitDeclarationOnly true --declaration true && cp -r ./build/types/* .",
-    "postpublish": "rm ./*.d.ts"
+    "build": "node tsup/anyServerFiles.js && npx tsup -d build/resources/main",
+    "check": "concurrently -c auto -g --timings npm:check:types npm:lint",
+    "check:types": "node tsup/anyServerFiles.js && npx tsc --noEmit -p src/main/resources/tsconfig.json || exit 0",
+    "lint": "eslint --cache \"src/main/resources/**/*.ts\"",
+    "prepublishOnly": "tsc -p src/main/resources/tsconfig.json --declaration true --emitDeclarationOnly true --declarationDir dist",
+    "postpublish": "rm -r ./dist",
+    "release": "npm run build",
+    "versioning": "npx changeset version && npm i --package-lock-only && NEW_VERSION=$(node -p \"require('./package.json').version\") && sed -i \"s/version.*/version = ${NEW_VERSION}/\" gradle.properties"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.5",
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@babel/preset-env": "^7.20.2",
-    "@babel/register": "^7.18.9",
-    "@enonic-types/lib-context": "^7.12.0",
-    "@enonic-types/lib-portal": "^7.12.0",
-    "@enonic-types/lib-project": "^7.12.0",
-    "@enonic-types/lib-vhost": "^7.12.0",
-    "@typescript-eslint/eslint-plugin": "^5.49.0",
-    "@typescript-eslint/parser": "^5.49.0",
-    "babel-loader": "^9.1.0",
-    "browserslist": "^4.21.4",
-    "browserslist-config-enonic": "^1.0.7",
-    "cross-env": "^7.0.3",
-    "eslint": "^8.32.0",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "glob": "^8.0.3",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.8.3",
-    "ramda": "^0.28.0",
-    "ts-loader": "^9.4.2",
-    "typescript": "^4.9.4",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1"
-  },
-  "dependencies": {
-    "@item-enonic-types/global": "^7.12.0"
-  },
-  "browserslist": [
-    "extends browserslist-config-enonic"
-  ],
-  "engines": {
-    "node": ">= 16.13.1",
-    "npm": ">= 8.1.2"
+    "@changesets/cli": "^2.28.1",
+    "@enonic-types/core": "^7.15.0",
+    "@enonic-types/lib-context": "^7.15.0",
+    "@enonic-types/lib-portal": "^7.15.0",
+    "@enonic-types/lib-project": "^7.15.0",
+    "@enonic-types/lib-vhost": "^7.15.0",
+    "@swc/core": "^1.11.5",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.21.0",
+    "eslint-config-prettier": "^10.0.2",
+    "eslint-plugin-prettier": "^5.2.3",
+    "glob": "^11.0.1",
+    "prettier": "^3.5.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.25.0"
   }
 }

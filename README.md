@@ -2,7 +2,7 @@
 
 Enonic XP Library for getting all content translations (from different layers).
 
-[![](https://jitpack.io/v/no.item/lib-xp-translations.svg)](https://jitpack.io/#no.item/lib-xp-translations)
+[![](https://repo.itemtest.no/api/badge/latest/releases/no/item/lib-xp-translations)](https://repo.itemtest.no/#/releases/no/item/lib-xp-translations)
 
 ## Gradle
 
@@ -10,7 +10,7 @@ To install this library you may need to add some new dependencies to your app's 
 
 ```groovy
 repositories {
-  maven { url 'https://jitpack.io' }
+  maven { url "https://repo.itemtest.no/releases" }
 }
 
 dependencies {
@@ -18,7 +18,7 @@ dependencies {
   include "com.enonic.xp:lib-portal:${xpVersion}"
   include "com.enonic.xp:lib-project:${xpVersion}"
   include "com.enonic.xp:lib-vhost:${xpVersion}"
-  include 'no.item:lib-xp-translations:1.5.0'
+  include 'no.item:lib-xp-translations:1.6.0'
 }
 ```
 
@@ -93,22 +93,26 @@ function addName(translation: Translation): Translation & { name: string } {
 }
 ```
 
+## Deploying
+
 ### Building
 
-To build he project run the following code
+To build the project, run the following command
 
 ```bash
-./gradlew build
+enonic project build
 ```
 
-### Deploy locally
+### Deploying locally
 
-Deploy locally for testing purposes:
+To deploy to a local sandbox, run the following command
 
 ```bash
-./gradlew publishToMavenLocal
+enonic project deploy
 ```
-## Deploy to Jitpack
 
-Go to the [Jitpack page for lib-xp-translations](https://jitpack.io/#no.item/lib-xp-translations) to deploy from Github (after
-[creating a new versioned release](https://github.com/ItemConsulting/lib-xp-translations/releases/new)).
+### Deploy to Maven
+
+```bash
+./gradlew publish -P com.enonic.xp.app.production=true
+```
