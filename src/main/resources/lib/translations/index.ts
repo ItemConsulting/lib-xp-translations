@@ -116,14 +116,24 @@ function getTranslatedUrl(
 
   if (urlIs404(urlOnWrongVhost)) {
     return;
-  } else if (isInAdminSite(urlOnWrongVhost, vhosts)) {
-    return urlOnWrongVhost.replace(`/${currentProjectId}/draft/`, `/${projectId}/draft/`);
-  } else if (urlOnWrongVhost === currentVhost?.source && projectVhost) {
-    // is top level of translated page
-    return urlOnWrongVhost.replace(currentVhost.source, projectVhost.source);
-  } else if (currentVhost && projectVhost) {
-    return urlOnWrongVhost.replace(appendSlash(currentVhost.source), appendSlash(projectVhost.source));
   }
+
+  // Only the path is rewritten, so the vhost source never matches the slashes in "https://"
+  const { origin, path } = splitOrigin(urlOnWrongVhost);
+
+  if (isInAdminSite(path, vhosts)) {
+    return origin + path.replace(`/${currentProjectId}/draft/`, `/${projectId}/draft/`);
+  } else if (path === currentVhost?.source && projectVhost) {
+    // is top level of translated page
+    return origin + projectVhost.source;
+  } else if (currentVhost && projectVhost) {
+    return origin + path.replace(appendSlash(currentVhost.source), appendSlash(projectVhost.source));
+  }
+}
+
+function splitOrigin(url: string): { origin: string; path: string } {
+  const match = /^([a-z][a-z0-9+.-]*:\/\/[^/?#]*)(.*)$/i.exec(url);
+  return match ? { origin: match[1], path: match[2] || "/" } : { origin: "", path: url };
 }
 
 function urlIs404(url: string): boolean {
