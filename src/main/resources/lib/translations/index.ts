@@ -114,15 +114,32 @@ function getTranslatedUrl(
       }),
   );
 
+  // replace in path only, so a vhost source of "/" doesn't match the slashes in "https://"
+  const origin = getOrigin(urlOnWrongVhost);
+  const path = urlOnWrongVhost.substring(origin.length) || "/";
+
   if (urlIs404(urlOnWrongVhost)) {
     return;
   } else if (isInAdminSite(urlOnWrongVhost, vhosts)) {
     return urlOnWrongVhost.replace(`/${currentProjectId}/draft/`, `/${projectId}/draft/`);
-  } else if (urlOnWrongVhost === currentVhost?.source && projectVhost) {
+  } else if (path === currentVhost?.source && projectVhost) {
     // is top level of translated page
-    return urlOnWrongVhost.replace(currentVhost.source, projectVhost.source);
+    return `${origin}${path.replace(currentVhost.source, projectVhost.source)}`;
   } else if (currentVhost && projectVhost) {
-    return urlOnWrongVhost.replace(appendSlash(currentVhost.source), appendSlash(projectVhost.source));
+    return `${origin}${path.replace(appendSlash(currentVhost.source), appendSlash(projectVhost.source))}`;
+  }
+}
+
+function getOrigin(url: string): string {
+  const protocolEnd = url.indexOf("://");
+  const pathStart = protocolEnd !== -1 ? url.indexOf("/", protocolEnd + 3) : -1;
+
+  if (protocolEnd === -1) {
+    return "";
+  } else if (pathStart === -1) {
+    return url;
+  } else {
+    return url.substring(0, pathStart);
   }
 }
 
